@@ -22,12 +22,21 @@ else
 CFLAGS += -D_GNU_SOURCE -fno-finite-math-only
 
 ifeq ($(GPU_BACKEND),rocm)
+ROCM_VENV ?= 0
+ifeq ($(ROCM_VENV),0)
 ROCM_PATH ?= /opt/rocm
 GPU_CC = $(ROCM_PATH)/bin/hipcc
+else
+GPU_CC = hipcc
+endif
 ROCM_ARCH ?= gfx1151
 
 GPU_CFLAGS ?= -O3 -fno-finite-math-only -pthread -D__HIP_PLATFORM_AMD__ -Wno-unused-command-line-argument --offload-arch=$(ROCM_ARCH)
-GPU_LDLIBS = -lm -pthread -L$(ROCM_PATH)/lib -lhipblas
+GPU_LDLIBS = -lm -pthread
+ifeq ($(ROCM_VENV),0)
+    GPU_LDLIBS += -L$(ROCM_PATH)/lib
+endif
+GPU_LDLIBS += -lhipblas
 
 @echo "ROCM_ARCH: $(ROCM_ARCH)"
 
